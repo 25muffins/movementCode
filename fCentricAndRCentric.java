@@ -22,17 +22,27 @@ public class fCentricAndRCentric extends OpMode
     public DcMotor backRightMotor;
     public DcMotor frontLeftMotor;
     public DcMotor frontRightMotor;
-    boolean isPressed = true;
-    double slowMode = 1;
-    public static double slowAmount = 0.3;
-    double offset = 0;
-    public static double deadZoneAmount = 0.1;
-    boolean isYPressed = true;
 
-    boolean FCmode = true;
-    boolean RCmode = false;
+    public enum state {
+        FCMODE,
+        RCMODE
+    }
+    state currentState = state.FCMODE;
+
+    double slowMode = 1;
+    public static double turnSpeed = 1;
+    public static double slowAmount = 0.3;
+    public static double deadZoneAmount = 0.1;
+    public static double first = 16;
+    public static double second = -16;
+
+
+    boolean isPressed = true;
+
+    double offset = 0;
     double setX;
     double setY;
+    double botHeading;
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
@@ -92,21 +102,33 @@ public class fCentricAndRCentric extends OpMode
         double y = -gamepad1.left_stick_y; // Remember, this is reversed!
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
-        double originalBotHeading = -imu.getAngularOrientation().firstAngle;
-        double botHeading = originalBotHeading - offset;
+        findBotHeading();
+
+
         double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
         double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-        if (FCmode){
-            setX = rotX;
-            setY = rotY;
-            telemetry.addData("mode", "fieldCentric");
+        switch (currentState){
+            case FCMODE:
+                setX = rotX;
+                setY = rotY;
+                telemetry.addData("mode", "fieldCentric");
+                if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
+                    currentState = state.RCMODE;
+                }
+                break;
+            case RCMODE:
+                setY = y;
+                setX = x;
+                telemetry.addData("mode", "robotCentric");
+                if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
+                    currentState = state.FCMODE;
+                }
+                break;
+
         }
-        else if(RCmode){
-            setY = y;
-            setX = x;
-            telemetry.addData("mode", "robotCentric");
-        }
+
+
 
 
         if (currentGamepad1.a && !previousGamepad1.a) { // slowmode
@@ -120,24 +142,33 @@ public class fCentricAndRCentric extends OpMode
 
             }
         }
+        if (currentGamepad1.x && !previousGamepad1.x){
+            while ((botHeading>Math.toRadians(first)||botHeading<Math.toRadians(second))){
+                findBotHeading();
+
+                    if (botHeading <= Math.toRadians(200) && botHeading >= 0){
+                        frontLeftMotor.setPower(-turnSpeed);
+                        backLeftMotor.setPower(-turnSpeed);
+                        frontRightMotor.setPower(turnSpeed);
+                        backRightMotor.setPower(turnSpeed);
+
+                    }
+                    if (botHeading < 0 && botHeading>-180) {
+                        frontLeftMotor.setPower(turnSpeed);
+                        backLeftMotor.setPower(turnSpeed);
+                        frontRightMotor.setPower(-turnSpeed);
+                        backRightMotor.setPower(-turnSpeed);
+                    }
+
+            }
+
+        }
 
         if (gamepad1.b){
             offset = -imu.getAngularOrientation().firstAngle;
         }
 
-        if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
 
-            if (isYPressed) {
-                FCmode = false;
-                RCmode = true;
-                isYPressed = false;
-            } else {
-                FCmode = true;
-                RCmode = false;
-                isYPressed = true;
-
-            }
-        }
 
 
         if (Math.abs(y) < deadZoneAmount) { //y deadzone
@@ -159,13 +190,12 @@ public class fCentricAndRCentric extends OpMode
 
 
         telemetry.addData("slowmode", slowMode);
-        telemetry.addData("frontLeftEncoderPos", frontLeftMotor.getCurrentPosition());
-        telemetry.addData("frontRightEncoderPos", frontRightMotor.getCurrentPosition());
-        telemetry.addData("Y", y);
-        telemetry.addData("X", x);
-        telemetry.addData("rotX", rotX);
-        telemetry.addData("rotY", rotY);
+        telemetry.addData("botheading", Math.toDegrees(botHeading));
+        telemetry.addData("x", currentGamepad1.x);
+        telemetry.addData("turnSpeed", turnSpeed);
+        telemetry.addData("botheading", botHeading);
         telemetry.addData("offset", offset);
+
 
 
 
@@ -176,6 +206,17 @@ public class fCentricAndRCentric extends OpMode
             currentGamepad1.copy(gamepad1);
         } catch (RobotCoreException e) {
             e.printStackTrace();
+        }
+    }
+    public void findBotHeading(){
+        double currentBotHeading = -imu.getAngularOrientation().firstAngle;
+
+        botHeading = currentBotHeading - offset;
+        if (Math.toDegrees(botHeading)<-180){
+            botHeading = Math.toRadians(180 - ((Math.abs(Math.toDegrees(botHeading))) - 180));
+        }
+        if (Math.toDegrees(botHeading) >= 180){
+            botHeading = Math.toRadians((Math.toDegrees(botHeading) - 180)-180);
         }
     }
 
