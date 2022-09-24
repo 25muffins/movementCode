@@ -23,6 +23,9 @@ public class fCentricAndRCentric extends OpMode
     public DcMotor frontLeftMotor;
     public DcMotor frontRightMotor;
 
+    public static Claw claw = new Claw();
+
+
     public enum state {
         FCMODE,
         RCMODE
@@ -70,6 +73,7 @@ public class fCentricAndRCentric extends OpMode
         backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
         frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
+        Claw.init();
 
         backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -109,8 +113,8 @@ public class fCentricAndRCentric extends OpMode
         double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
         double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-
-        switch (currentState){ //switch between fc and rc
+/*
+        switch (currentState){ //switch between fc and rc with button y
             case FCMODE:
                 setX = rotX;
                 setY = rotY;
@@ -128,7 +132,7 @@ public class fCentricAndRCentric extends OpMode
                 }
                 break;
 
-        }
+        }*/
 
         //buttons
         buttonASlow(); //slowmode
@@ -233,6 +237,11 @@ public class fCentricAndRCentric extends OpMode
                 isPressed = true;
 
             }
+        }
+    }
+    public void buttonYClaw(){
+        if (currentGamepad1.y && !previousGamepad1.y) { // slowmode
+
         }
     }
 
