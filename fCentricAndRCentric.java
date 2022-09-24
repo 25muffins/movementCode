@@ -99,16 +99,18 @@ public class fCentricAndRCentric extends OpMode
 
     }
     public void loop(){
-        double y = -gamepad1.left_stick_y; // Remember, this is reversed!
+        double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
+
         findBotHeading();
 
-
+        //main field centric calculations
         double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
         double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-        switch (currentState){
+
+        switch (currentState){ //switch between fc and rc
             case FCMODE:
                 setX = rotX;
                 setY = rotY;
@@ -128,46 +130,12 @@ public class fCentricAndRCentric extends OpMode
 
         }
 
+        //buttons
+        buttonASlow(); //slowmode
 
+        buttonBReset(); //reset FCmode
 
-
-        if (currentGamepad1.a && !previousGamepad1.a) { // slowmode
-            if (isPressed) {
-                slowMode = slowAmount;
-                isPressed = false;
-
-            } else {
-                slowMode = 1;
-                isPressed = true;
-
-            }
-        }
-        if (currentGamepad1.x && !previousGamepad1.x){
-            while ((botHeading>Math.toRadians(first)||botHeading<Math.toRadians(second))){
-                findBotHeading();
-
-                    if (botHeading <= Math.toRadians(200) && botHeading >= 0){
-                        frontLeftMotor.setPower(-turnSpeed);
-                        backLeftMotor.setPower(-turnSpeed);
-                        frontRightMotor.setPower(turnSpeed);
-                        backRightMotor.setPower(turnSpeed);
-
-                    }
-                    if (botHeading < 0 && botHeading>-180) {
-                        frontLeftMotor.setPower(turnSpeed);
-                        backLeftMotor.setPower(turnSpeed);
-                        frontRightMotor.setPower(-turnSpeed);
-                        backRightMotor.setPower(-turnSpeed);
-                    }
-
-            }
-
-        }
-
-        if (gamepad1.b){
-            offset = -imu.getAngularOrientation().firstAngle;
-        }
-
+        buttonXTurnToZero(); //turn to 0
 
 
 
@@ -181,6 +149,8 @@ public class fCentricAndRCentric extends OpMode
             rx = 0;
         }
 
+
+        //mainMotorMovement
         frontLeftMotor.setPower((setY + setX + rx)*slowMode);
         backLeftMotor.setPower((setY - setX + rx)*slowMode);
         frontRightMotor.setPower((setY - setX - rx)*slowMode);
@@ -212,11 +182,57 @@ public class fCentricAndRCentric extends OpMode
         double currentBotHeading = -imu.getAngularOrientation().firstAngle;
 
         botHeading = currentBotHeading - offset;
+
+        //deals with cases like when both offset and heading are negative
         if (Math.toDegrees(botHeading)<-180){
             botHeading = Math.toRadians(180 - ((Math.abs(Math.toDegrees(botHeading))) - 180));
         }
         if (Math.toDegrees(botHeading) >= 180){
             botHeading = Math.toRadians((Math.toDegrees(botHeading) - 180)-180);
+        }
+    }
+
+
+    //buttons
+    public void buttonXTurnToZero(){
+        if (currentGamepad1.x && !previousGamepad1.x){
+            while ((botHeading>Math.toRadians(first)||botHeading<Math.toRadians(second))){
+                findBotHeading();
+
+                if (botHeading <= Math.toRadians(200) && botHeading >= 0){
+                    frontLeftMotor.setPower(-turnSpeed);
+                    backLeftMotor.setPower(-turnSpeed);
+                    frontRightMotor.setPower(turnSpeed);
+                    backRightMotor.setPower(turnSpeed);
+
+                }
+                if (botHeading < 0 && botHeading>-180) {
+                    frontLeftMotor.setPower(turnSpeed);
+                    backLeftMotor.setPower(turnSpeed);
+                    frontRightMotor.setPower(-turnSpeed);
+                    backRightMotor.setPower(-turnSpeed);
+                }
+
+            }
+
+        }
+    }
+    public void buttonBReset(){
+        if (gamepad1.b){
+            offset = -imu.getAngularOrientation().firstAngle;
+        }
+    }
+    public void buttonASlow(){
+        if (currentGamepad1.a && !previousGamepad1.a) { // slowmode
+            if (isPressed) {
+                slowMode = slowAmount;
+                isPressed = false;
+
+            } else {
+                slowMode = 1;
+                isPressed = true;
+
+            }
         }
     }
 
