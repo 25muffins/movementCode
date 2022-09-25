@@ -3,29 +3,30 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
 @Config
-@Disabled
-public class Claw extends OpMode{
-    public Servo ClawServo;
-    public static double ServoPositionOpen = 0;
-    public static double ServoPositionClose = 0;
-    @Override
-    public void init(){
+public class Claw{
+    public Servo ClawServo = null;
+
+    public static double ServoPositionOpen = 0.38;
+    public static double ServoPositionClose = 0.68;
+    public void init(HardwareMap hardwareMap){
         ClawServo = hardwareMap.get(Servo.class, "ClawServo");
     }
 
     public void loop() {
 
     }
-
-    public static void Open(){
+    public void Open(){
         ClawServo.setPosition(ServoPositionOpen);
     }
-    public static void Close(){
+    public void Close(){
         ClawServo.setPosition(ServoPositionClose);
     }
+
+
 
 }

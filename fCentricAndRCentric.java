@@ -13,7 +13,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 
-
 @Config
 @TeleOp(name="fCentricandRCentric", group="Iterative Opmode")
 public class fCentricAndRCentric extends OpMode
@@ -24,7 +23,7 @@ public class fCentricAndRCentric extends OpMode
     public DcMotor frontRightMotor;
 
     public static Claw claw = new Claw();
-
+    public static DifferentialArm arm = new DifferentialArm();
 
     public enum state {
         FCMODE,
@@ -41,16 +40,23 @@ public class fCentricAndRCentric extends OpMode
 
 
     boolean isPressed = true;
+    boolean isYPressed = true;
 
     double offset = 0;
     double setX;
     double setY;
     double botHeading;
 
+
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
+    Gamepad previousGamepad2 = new Gamepad();
+    Gamepad currentGamepad2 = new Gamepad();
 
     BNO055IMU imu;
+
+    public DcMotor MotorLeft;
+    public DcMotor MotorRight;
 
     public void init(){
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -73,7 +79,8 @@ public class fCentricAndRCentric extends OpMode
         backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
         frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
-        Claw.init();
+        claw.init(hardwareMap);
+        arm.init(hardwareMap);
 
         backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -107,40 +114,47 @@ public class fCentricAndRCentric extends OpMode
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
+        double y2 = -gamepad2.left_stick_y;
+        double x2 = gamepad2.left_stick_x;
+
         findBotHeading();
 
         //main field centric calculations
         double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
         double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-/*
+
         switch (currentState){ //switch between fc and rc with button y
             case FCMODE:
                 setX = rotX;
                 setY = rotY;
                 telemetry.addData("mode", "fieldCentric");
-                if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
+                /*if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
                     currentState = state.RCMODE;
-                }
+                }*/
                 break;
             case RCMODE:
                 setY = y;
                 setX = x;
                 telemetry.addData("mode", "robotCentric");
-                if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
+                /*if (currentGamepad1.y && !previousGamepad1.y) { // switching modes
                     currentState = state.FCMODE;
-                }
+                }*/
                 break;
 
-        }*/
+        }
 
-        //buttons
+        //buttons for gamepad 1
+
         buttonASlow(); //slowmode
 
         buttonBReset(); //reset FCmode
 
         buttonXTurnToZero(); //turn to 0
 
+        //buttons for gamepad 2
+
+        buttonYClaw();
 
 
         if (Math.abs(y) < deadZoneAmount) { //y deadzone
@@ -154,12 +168,14 @@ public class fCentricAndRCentric extends OpMode
         }
 
 
+
         //mainMotorMovement
         frontLeftMotor.setPower((setY + setX + rx)*slowMode);
         backLeftMotor.setPower((setY - setX + rx)*slowMode);
         frontRightMotor.setPower((setY - setX - rx)*slowMode);
         backRightMotor.setPower((setY + setX - rx)*slowMode);
-
+        arm.MotorLeft.setPower(y2*arm.speed);
+        arm.MotorRight.setPower(x2*arm.speed);
 
 
 
@@ -169,6 +185,8 @@ public class fCentricAndRCentric extends OpMode
         telemetry.addData("turnSpeed", turnSpeed);
         telemetry.addData("botheading", botHeading);
         telemetry.addData("offset", offset);
+        telemetry.addData("close or open", isYPressed);
+
 
 
 
@@ -176,7 +194,9 @@ public class fCentricAndRCentric extends OpMode
         try {
 
             previousGamepad1.copy(currentGamepad1);
+            previousGamepad2.copy(currentGamepad2);
 
+            currentGamepad2.copy(gamepad2);
             currentGamepad1.copy(gamepad1);
         } catch (RobotCoreException e) {
             e.printStackTrace();
@@ -240,9 +260,17 @@ public class fCentricAndRCentric extends OpMode
         }
     }
     public void buttonYClaw(){
-        if (currentGamepad1.y && !previousGamepad1.y) { // slowmode
-
+        if (currentGamepad2.y && !previousGamepad2.y) { //claw
+            if (isYPressed){
+                claw.Close();
+                isYPressed = false;
+            }
+            else {
+                claw.Open();
+                isYPressed = true;
+            }
         }
     }
+
 
 }
