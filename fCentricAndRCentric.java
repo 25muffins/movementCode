@@ -115,7 +115,7 @@ public class fCentricAndRCentric extends OpMode
         double rx = gamepad1.right_stick_x;
 
         double y2 = -gamepad2.left_stick_y;
-        double x2 = gamepad2.left_stick_x;
+        double ry2 = gamepad2.right_stick_y;
 
         findBotHeading();
 
@@ -174,9 +174,9 @@ public class fCentricAndRCentric extends OpMode
         backLeftMotor.setPower((setY - setX + rx)*slowMode);
         frontRightMotor.setPower((setY - setX - rx)*slowMode);
         backRightMotor.setPower((setY + setX - rx)*slowMode);
-        arm.MotorLeft.setPower(y2*arm.speed);
-        arm.MotorRight.setPower(x2*arm.speed);
-
+        arm.MotorLeft.setPower((y2-ry2)*arm.speed);
+        arm.MotorRight.setPower((-y2-ry2)*arm.speed);
+        // for right it would be both set to y2
 
 
         telemetry.addData("slowmode", slowMode);
