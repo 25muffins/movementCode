@@ -13,6 +13,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 
+
 @Config
 @TeleOp(name="fCentricandRCentric", group="Iterative Opmode")
 public class fCentricAndRCentric extends OpMode
@@ -25,6 +26,9 @@ public class fCentricAndRCentric extends OpMode
     public static Claw claw = new Claw();
     public static DifferentialArm arm = new DifferentialArm();
 
+
+
+
     public enum state {
         FCMODE,
         RCMODE
@@ -32,8 +36,8 @@ public class fCentricAndRCentric extends OpMode
     state currentState = state.FCMODE;
 
     double slowMode = 1;
-    public static double turnSpeed = 1;
-    public static double slowAmount = 0.3;
+    public static double turnSpeed = 0.5;
+    public static double slowAmount = 0.4;
     public static double deadZoneAmount = 0.1;
     public static double first = 16;
     public static double second = -16;
@@ -55,11 +59,11 @@ public class fCentricAndRCentric extends OpMode
 
     BNO055IMU imu;
 
-    public DcMotor MotorLeft;
-    public DcMotor MotorRight;
 
     public void init(){
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit           = BNO055IMU.AngleUnit.RADIANS;
@@ -99,17 +103,22 @@ public class fCentricAndRCentric extends OpMode
 
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        telemetry.addData("init?", "yes");
 
 
 
     }
     public void init_loop(){
-        telemetry.addData("Init?", "yes");
+
     }
     public void start(){
 
     }
+
     public void loop(){
+
+
+
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
@@ -156,6 +165,13 @@ public class fCentricAndRCentric extends OpMode
 
         buttonYClaw();
 
+        if (gamepad2.dpad_up){
+            claw.ServoPositionClose += 0.005;
+        }
+        if (gamepad2.dpad_down){
+            claw.ServoPositionClose -= 0.005;
+        }
+
 
         if (Math.abs(y) < deadZoneAmount) { //y deadzone
             y = 0;
@@ -185,8 +201,6 @@ public class fCentricAndRCentric extends OpMode
         telemetry.addData("turnSpeed", turnSpeed);
         telemetry.addData("botheading", botHeading);
         telemetry.addData("offset", offset);
-        telemetry.addData("close or open", isYPressed);
-
 
 
 

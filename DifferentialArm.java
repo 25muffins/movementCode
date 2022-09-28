@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class DifferentialArm {
     public DcMotor MotorLeft;
     public DcMotor MotorRight;
-    public static double speed = 0.7;
+    public static double speed = 0.5;
     public void init(HardwareMap hardwareMap){
         MotorLeft= hardwareMap.get(DcMotor.class, "MotorLeft");
         MotorRight = hardwareMap.get(DcMotor.class, "MotorRight");
